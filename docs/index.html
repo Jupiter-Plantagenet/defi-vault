@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upgradable DeFi Vault — George Akor</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root { --navy: #1a1a2e; --accent: #0f3460; --highlight: #e94560; --text: #2d2d2d; --light: #f8f9fb; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: var(--text); background: #f0f2f5; line-height: 1.7; }
+    .page { max-width: 860px; margin: 32px auto; background: #fff; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 20px rgba(0,0,0,0.08); }
+    .header { background: var(--navy); color: #fff; padding: 48px; position: relative; }
+    .header::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--highlight), var(--accent)); }
+    .header h1 { font-size: 1.8rem; margin-bottom: 8px; }
+    .header p { color: rgba(255,255,255,0.75); font-size: 1rem; }
+    .badges { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+    .badge { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); padding: 4px 14px; border-radius: 100px; font-size: 0.8rem; color: rgba(255,255,255,0.85); }
+    .content { padding: 40px 48px; }
+    h2 { font-size: 1.1rem; color: var(--navy); border-bottom: 2px solid var(--navy); padding-bottom: 6px; margin: 32px 0 16px; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.85rem; }
+    h2:first-child { margin-top: 0; }
+    pre { background: var(--light); border: 1px solid #e2e6ec; border-radius: 6px; padding: 16px 20px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 12px 0; }
+    code { font-family: 'SF Mono', 'Fira Code', monospace; }
+    .features { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+    .feature { background: var(--light); border: 1px solid #e2e6ec; border-radius: 6px; padding: 14px 16px; }
+    .feature strong { display: block; color: var(--navy); margin-bottom: 4px; font-size: 0.9rem; }
+    .feature span { font-size: 0.84rem; color: #555; }
+    .test-results { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 6px; padding: 16px 20px; margin: 12px 0; }
+    .test-results strong { color: #2e7d32; }
+    .files { list-style: none; }
+    .files li { padding: 6px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.88rem; }
+    .files li:last-child { border: none; }
+    .files a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    .files a:hover { text-decoration: underline; }
+    .files span { color: #888; margin-left: 8px; }
+    @media (max-width: 640px) { .features { grid-template-columns: 1fr; } .header, .content { padding: 28px 24px; } }
+    @media print { .page { margin: 0; box-shadow: none; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <h1>Upgradable DeFi Vault</h1>
+      <p>ERC-4626 compliant yield vault with UUPS proxy upgradeability, invariant fuzz testing, and automated static analysis.</p>
+      <div class="badges">
+        <span class="badge">Solidity ^0.8.24</span>
+        <span class="badge">OpenZeppelin v5</span>
+        <span class="badge">Foundry</span>
+        <span class="badge">Slither</span>
+        <span class="badge">GitHub Actions CI</span>
+      </div>
+    </div>
+
+    <div class="content">
+      <h2>Architecture</h2>
+      <pre><code>User ──deposit──► ERC1967Proxy ──delegatecall──► VaultV1 (ERC-4626)
+                      │                              │
+                      │                     ┌────────┴────────┐
+                      │                     │  MockYieldSource │
+                      │                     │  (yield strategy)│
+                      │                     └─────────────────┘
+                 upgradeTo(VaultV2)
+                      │
+                      ▼
+                  VaultV2 (+ performance fees)</code></pre>
+
+      <h2>Key Features</h2>
+      <div class="features">
+        <div class="feature">
+          <strong>ERC-4626 Standard</strong>
+          <span>Fully compliant vault interface — deposit, withdraw, redeem, mint with share accounting.</span>
+        </div>
+        <div class="feature">
+          <strong>UUPS Upgradeability</strong>
+          <span>Seamlessly upgrade vault logic (V1 → V2) without moving user funds. Owner-gated.</span>
+        </div>
+        <div class="feature">
+          <strong>Invariant Fuzz Testing</strong>
+          <span>32,768+ random calls verify solvency, exchange rate consistency, and no value leaks.</span>
+        </div>
+        <div class="feature">
+          <strong>Slither Static Analysis</strong>
+          <span>Automated vulnerability scanning on every PR via GitHub Actions CI/CD.</span>
+        </div>
+      </div>
+
+      <h2>Test Results</h2>
+      <div class="test-results">
+        <strong>16/16 tests passed</strong> — 12 unit tests + 4 invariant fuzz tests (128 runs, 32,768 calls, 0 reverts)
+      </div>
+
+      <h2>Source Files</h2>
+      <ul class="files">
+        <li><a href="../src/VaultV1.sol">VaultV1.sol</a> <span>ERC-4626 vault with UUPS proxy</span></li>
+        <li><a href="../src/VaultV2.sol">VaultV2.sol</a> <span>Upgraded vault with performance fees</span></li>
+        <li><a href="../src/MockERC20.sol">MockERC20.sol</a> <span>Test ERC-20 token</span></li>
+        <li><a href="../src/MockYieldSource.sol">MockYieldSource.sol</a> <span>Simulated yield protocol</span></li>
+        <li><a href="../test/VaultTest.t.sol">VaultTest.t.sol</a> <span>Unit tests (12 tests)</span></li>
+        <li><a href="../test/VaultInvariant.t.sol">VaultInvariant.t.sol</a> <span>Invariant fuzz tests (4 tests)</span></li>
+        <li><a href="../script/Deploy.s.sol">Deploy.s.sol</a> <span>Deployment script</span></li>
+      </ul>
+
+      <h2>Run It Yourself</h2>
+      <pre><code># Clone and demo (one command)
+git clone https://github.com/akorgeorge/defi-vault.git
+cd defi-vault
+bash demo.sh
+
+# Or manually:
+forge install
+forge build
+forge test -vvv
+forge test --gas-report</code></pre>
+    </div>
+  </div>
+</body>
+</html>
